@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-//SPDX-License-Identifier: None;
+//SPDX-License-Identifier: 3.0;
 
 //------------------------------------------------------
 // ERC20 TOKEN interface
