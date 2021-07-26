@@ -1,9 +1,11 @@
 require("@nomiclabs/hardhat-waffle");
+require('dotenv').config();
 
+const {ALCHEMY_API_KEY, METAMASK_PRIVATE_KEY} = process.env;
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
-task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
-  const accounts = await hre.ethers.getSigners();
+task("accounts", "Prints the list of accounts", async () => {
+  const accounts = await ethers.getSigners();
 
   for (const account of accounts) {
     console.log(account.address);
@@ -18,4 +20,12 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.5.16",
+  networks: {
+    ropsten: {
+      url: `https://eth-ropsten.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+      accounts: [`0x${METAMASK_PRIVATE_KEY}`],
+      gas: 5500000,
+      timeout: 86400
+    }
+  }
 };
