@@ -1,6 +1,6 @@
-gpragma solidity ^0.8.0;
+pragma solidity ^0.8.0;
 
-import './d.sol'; //imports the erc20 token to verify if a project has a token
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";  //imports the erc20 token to verify if a project has a token
 
 contract projectListing{
     struct ProjectProps{
