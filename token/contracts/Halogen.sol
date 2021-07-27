@@ -1,12 +1,9 @@
+//SPDX-License-Identifier: GPL-3.0;
 pragma solidity ^0.8.0;
-
-//SPDX-License-Identifier: 3.0;
 
 //------------------------------------------------------
 // ERC20 TOKEN interface
 // ------------------------------------------------------
-
-
 
 interface ERC20interface{
     function totalsupply() external view returns (uint256);
@@ -25,9 +22,6 @@ interface ERC20interface{
     
     event Approval (address indexed owner, address indexed spender, uint256 value);
 }
-
-
-
 
 contract Halogen is ERC20interface{
     
@@ -95,24 +89,19 @@ contract Halogen is ERC20interface{
         emit TokenDistChanged(TokenDist, _TokenDist);
         TokenDist = _TokenDist;
     }
-    
     function setNewAdmin(address _newAdmin) onlyAdmin public {
         emit newAdmin(admin, _newAdmin);
         admin = _newAdmin;
     }
-    
     function name() public view returns(string memory){
         return _name;
     }
-    
     function symbol() public view returns(string memory){
         return _symbol;
     }
-    
     function totalsupply() public view override returns(uint256){
         return _totalsupply;
     }
-    
     function balanceOf(address account) public view override returns(uint256){
         return _balances[account];
     }
@@ -130,17 +119,13 @@ contract Halogen is ERC20interface{
     function allowance(address owner, address spender) public view override returns(uint256){
         return _allowances[owner][spender];
     }
-    
     function transferFrom(address sender, address recipient, uint256 amount) external override returns(bool){
         _transfer(sender, recipient, amount);
-        
         uint256 currentAllowance = _allowances[sender][msg.sender];
         require(currentAllowance >= amount,"HGN: allowance less than the amount");
         unchecked {
             _approve(sender, msg.sender, currentAllowance - amount);
         }
-        
         return true;
     }
-    
 }
