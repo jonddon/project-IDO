@@ -1,9 +1,8 @@
 const { ethers } = require("hardhat");
 
-// const feeToSetter = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
 async function main() {
   const [deployer] = await ethers.getSigners();
-  console.log("Deploying contracts with the account:", deployer.address);
+  console.log("Deploying UniswapV2Factory contract with the account:", deployer.address);
 
   console.log("Account balance:", (await deployer.getBalance()).toString());
   const UniswapV2Factory = await ethers.getContractFactory("UniswapV2Factory") // Get the UniswapV2Factory contract from our contracts folder

@@ -25,7 +25,8 @@ module.exports = {
       url: `https://eth-ropsten.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
       accounts: [`0x${METAMASK_PRIVATE_KEY}`],
       gas: 5500000,
-      timeout: 86400
+      timeout: 86400,
+      chainId: 3
     }
   }
 };
