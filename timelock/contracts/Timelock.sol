@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "./ProjectXToken.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TimeLock {
     address[] keepers;  // holds addresses of time lock keepers
@@ -26,7 +26,7 @@ contract TimeLock {
     address[] investors;
     address[] advisors;
 
-    ProjectXToken projectX_Token;
+    IERC20 projectX_Token;
 
     uint deployedAt;            // date when the contract was deployed    
     uint timeToWithdrawfund; //declares the variable for fund withdrawal
@@ -34,7 +34,7 @@ contract TimeLock {
     uint minLockTime;       // minimum time for which tokens would be locked, specified in days, formerly _timeToWithdrawFund
 
     modifier timeElapse(address _projectAddress) {
-        require(lockedSince[_projectAddress] + (minLockTime * day) >= now, "time to unlock not complete yet");     // not tested yet
+        require(lockedSince[_projectAddress] + (minLockTime * 1 days) >= block.timestamp, "time to unlock not complete yet");     // not tested yet
         _;
     }
     
@@ -51,11 +51,13 @@ contract TimeLock {
             }   
         }
         require(allowed, "Only keepers or master keeper allowed");
+        _;
     }
     
     // modifier would allow only the master keeper to pass
     modifier onlyMaster() {
-        require(msg.sender == master, "Only master keeper allowed");
+        require(msg.sender == masterKeeper, "Only master keeper allowed");
+        _;
     }
     
     /*
@@ -93,7 +95,7 @@ contract TimeLock {
         deployedAt = block.timestamp;
         minLockAmount = _minLockAmount;
         minLockTime = _minLockTime;
-        projectX_Token = ProjectXToken(_tokenAddress);
+        projectX_Token = IERC20(_tokenAddress);
         _setInitialStakeHoldersBalance();
         _setInitiallastDistrbution();
     }
@@ -120,15 +122,15 @@ contract TimeLock {
     // for adding keepers for the contract
     function addKeeper(address _keeper) external onlyMaster {
         require(keepers.length < 3, "Keepers limit exceeded");
-        require(_keeper != masterKeeper, "");
-        require(_keeper != address(0), "");
+        require(_keeper != masterKeeper, "Already a master");
+        require(_keeper != address(0), "Adress cannot be zero address");
         keepers.push(_keeper);
         emit KeeperAdded(_keeper);
     }
     
     function changeMaster(address _newMaster) external onlyMaster returns(bool) {
-        require(_keeper != masterKeeper, "");
-        require(_keeper != address(0), "");
+        require(_newMaster != masterKeeper, "Already master");
+        require(_newMaster != address(0), "Address cannot be zero address");
         if(_isKeeper(_newMaster)) {
             masterKeeper = _newMaster;
             return true;
@@ -138,7 +140,7 @@ contract TimeLock {
     }
     
     // private function to check that an address is a keeper
-    function _isKeeper(address _keeper) private returns(bool) {
+    function _isKeeper(address _keeper) private view returns(bool) {
         for(uint8 i = 0; i < keepers.length; i++) {
             if(keepers[i] == _keeper) {
                 return true;
@@ -153,20 +155,19 @@ contract TimeLock {
     
    // formely deposit(), changed to reflect projectX_Token deposit by a project
     function lockFund(uint _amount) public returns(bool) { // this function is for depositing 
-        // bank[msg.sender] += msg.value;
         bool success;
         success = projectX_Token.transferFrom(msg.sender, address(this), _amount);     // initiate transfer to address of this contract
         if(success) {
             lockedFunds[msg.sender] += _amount;
-            lockedSince[msg.sender] = now;
-            emit FundsLocked();
+            lockedSince[msg.sender] = block.timestamp;
+            emit FundsLocked(msg.sender, _amount);
             return true;
         }
         return false;
     }
     
     // get the amount locked up by a project
-    function getLockedAmount(address _projectAddress) external returns(uint) {
+    function getLockedAmount(address _projectAddress) external view returns(uint) {
         return lockedFunds[_projectAddress];
     }
     
@@ -174,11 +175,11 @@ contract TimeLock {
     // I think we shld remove the _amount argument, and just unlock all funds back to the project address
     function unlockFund(uint _amount, address _projectAddress) external timeElapse(_projectAddress) onlyKeepers returns(bool) {
         bool success;
-        require(_amount <= lockedFunds[_projectAddress]);
+        require(_amount <= lockedFunds[_projectAddress], "Amount exceed value locked");
         success = projectX_Token.transfer(_projectAddress, _amount);
         if(success) {
             lockedFunds[_projectAddress] -= _amount;
-            lockedSince[_projectAddress] = now;
+            lockedSince[_projectAddress] = block.timestamp;
             return true;
         }
         return false;
@@ -276,7 +277,7 @@ contract TimeLock {
     }
     
     // this will prevent ether transfer to this contract, as it isnt meant to hold any ether.
-    receive() public {
+    receive() payable external {
         revert();
     }
 }
