@@ -1,15 +1,23 @@
-const hre = require("hardhat");
+const {ethers} = require("hardhat");
+require('dotenv').config();
 
-const FACTORY_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// Forked UniswapV2Factory contract address on Ropsten
+const {UNISWAPV2_FACTORY_ADDRESS} = process.env;
+
 async function main() {
-  // Deploy WETH contract first
-  const WETH = await hre.ethers.getContractFactory("WETH");
+  const [deployer] = await ethers.getSigners();
+  console.log("Deploying UniswapV2Router02 contract with the account:", deployer.address);
+
+  console.log("Account balance:", (await deployer.getBalance()).toString());
+
+  // Deploying WETH contract first
+  const WETH = await ethers.getContractFactory("WETH");
   const weth = await WETH.deploy();
   await weth.deployed();
   console.log("WETH contract deployed to: " + weth.address); // the address of the deployed WETH contract
 
-  const UniswapV2Router02 = await hre.ethers.getContractFactory("UniswapV2Router02");
-  const router = await UniswapV2Router02.deploy(FACTORY_ADDRESS, weth.address); // constructor
+  const UniswapV2Router02 = await ethers.getContractFactory("UniswapV2Router02");
+  const router = await UniswapV2Router02.deploy(UNISWAPV2_FACTORY_ADDRESS, weth.address); // constructor
 
   await router.deployed();
 
